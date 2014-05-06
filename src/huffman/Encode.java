@@ -12,9 +12,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+/**
+ * Performs Huffman Encoding on a source file.
+ * 
+ * @author Jason Parraga <Sovietaced@gmail.com>
+ */
 public class Encode {
 
-	public static void main(String args[]) throws IOException {
+	public static void main(String args[]) throws Exception {
 		String source = args[0];
 		File file = new File(source);
 		try {
@@ -22,16 +27,15 @@ public class Encode {
 			for(Entry<Character, Integer> e : frequencies.entrySet()) {
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new Exception(e.getMessage());
 		}
 		String target = args[1];
 	}
 
 	/**
-	 * Calculates a mapping of value -> frequency
+	 * Calculates a mapping of character -> frequency given an input file
 	 * @param file the input file to read
-	 * @return a mapping of value -> frquency
+	 * @return a mapping of character -> frquency
 	 * @throws IOException
 	 */
 	public static Map<Character, Integer> calculateFrequencies(File file) throws IOException {
