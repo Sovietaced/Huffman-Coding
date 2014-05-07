@@ -8,9 +8,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.PriorityQueue;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Performs Huffman Encoding on a source file.
@@ -24,8 +31,26 @@ public class Encode {
 		File file = new File(source);
 		try {
 			Map<Character, Integer> frequencies = calculateFrequencies(file);
-			for(Entry<Character, Integer> e : frequencies.entrySet()) {
+			List<HuffmanCode> codes = new ArrayList<HuffmanCode>();
+			
+			// Generate wrappers...
+			for (Entry<Character, Integer> entry : frequencies.entrySet()) {
+				codes.add(new HuffmanCode(entry.getKey().charValue(), entry.getValue().intValue()));
 			}
+			
+			// Sort the wrappers...
+			SortedSet<HuffmanCode> sorted = new TreeSet<HuffmanCode>(codes);
+			
+			// Insert sorted wrappers into priority queue
+			PriorityQueue<BinaryTree> pq = new PriorityQueue<BinaryTree>();
+			for(HuffmanCode hc : sorted) {
+				BinaryTree tree = new BinaryTree(hc);
+				pq.add(tree);
+			}
+			
+			BinaryTree huffmanTree = generateHuffmanTree(pq);
+			huffmanTree.dump();
+			
 		} catch (IOException e) {
 			throw new Exception(e.getMessage());
 		}
@@ -60,5 +85,18 @@ public class Encode {
 			}
 		}
 		return frequencies;
+	}
+	
+	public static BinaryTree generateHuffmanTree(PriorityQueue<BinaryTree> pq) {
+		while (pq.size() > 1) {
+			
+			BinaryTree leftLeaf = pq.poll();
+			BinaryTree rightLeaf = pq.poll();
+			
+			BinaryTree root = new BinaryTree(leftLeaf, rightLeaf);
+			pq.offer(root);
+		}
+		
+		return pq.poll();
 	}
 }
