@@ -51,15 +51,43 @@ public class BinaryTree implements Comparable<BinaryTree> {
 		this.value = value;
 	}
 	
+	public String getEncoding(String passed, HuffmanCode hc) {
+		if(this.value instanceof HuffmanCode) {
+			HuffmanCode thishc = (HuffmanCode) this.value;
+			if(thishc == hc){
+				return passed;
+			}
+			else {
+				if(this.left != null && this.left.getEncoding(passed + "0", hc) != null) {
+					return this.left.getEncoding(passed + "0", hc);
+				}
+				if(this.right != null && this.right.getEncoding(passed + "1", hc) != null) {
+					return this.right.getEncoding(passed + "1", hc);
+				}
+			}
+		}
+		else {
+			if(this.left != null && this.left.getEncoding(passed + "0", hc) != null) {
+				return this.left.getEncoding(passed + "0", hc);
+			}
+			if(this.right != null && this.right.getEncoding(passed + "1", hc) != null) {
+				return this.right.getEncoding(passed + "1", hc);
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * In order traversal toString
 	 */
 	public void dump() {
 		if(this.left != null) {
+			System.out.println("0");
 			this.left.dump();
 		}
 		System.out.println(this.value);
 		if(this.right != null) {
+			System.out.println(1);
 			this.right.dump();
 		}
 	}

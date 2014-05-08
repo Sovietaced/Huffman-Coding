@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -38,18 +37,21 @@ public class Encode {
 				codes.add(new HuffmanCode(entry.getKey().charValue(), entry.getValue().intValue()));
 			}
 			
-			// Sort the wrappers...
-			SortedSet<HuffmanCode> sorted = new TreeSet<HuffmanCode>(codes);
+			Collections.sort(codes);
 			
 			// Insert sorted wrappers into priority queue
 			PriorityQueue<BinaryTree> pq = new PriorityQueue<BinaryTree>();
-			for(HuffmanCode hc : sorted) {
+			for(HuffmanCode hc : codes) {
 				BinaryTree tree = new BinaryTree(hc);
 				pq.add(tree);
 			}
-			
+
+			// Generate Huffman Tree
 			BinaryTree huffmanTree = generateHuffmanTree(pq);
-			huffmanTree.dump();
+			for(HuffmanCode hc : codes) {
+				System.out.println(huffmanTree.getEncoding("", hc));
+			}
+		
 			
 		} catch (IOException e) {
 			throw new Exception(e.getMessage());
@@ -73,7 +75,6 @@ public class Encode {
 			// -1 means EOF
 			while ((r = reader.read()) != -1) {
 				Character c = new Character((char) r);
-				
 				// Fastest to get and check for null
 				Integer i = frequencies.get(c);
 				if(i != null) {
