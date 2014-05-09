@@ -56,7 +56,7 @@ public class Encode {
 			BinaryTree huffmanTree = generateHuffmanTree(pq);
 			
 			Map<Integer, List<Character>> charLengths = getCharLengths(huffmanTree, codes);
-			Map<Character, String> prefixCodes = canonize(charLengths);
+			Map<Character, String> prefixCodes = Util.canonize(charLengths);
 			System.out.println(prefixCodes.entrySet());
 				
 			String target = args[1];
@@ -139,42 +139,6 @@ public class Encode {
 		
 		return lengthToCharacters;
 	}
-	
-	public static Map<Character, String> canonize(Map<Integer, List<Character>> charLengths) {
-		Map<Character, String> prefixCodes = new HashMap<Character, String>();
-		List<Integer> reverse = new ArrayList<Integer>(charLengths.keySet());
-		Collections.reverse(reverse);
-		
-		int firstLen = reverse.get(0);
-		String base = String.format("%0" + firstLen + "d", 0);
-		
-		for(Integer i : reverse) {
-			// Chop off if necessary
-			int diff = base.length() - i.intValue();
-			base = base.substring(diff, base.length());
-			System.out.println("after chopping: " + i);
-			List<Character> chars = charLengths.get(i);
-			for(int j = 0; j < chars.size(); j++) {
-				System.out.println(chars.get(j));
-				System.out.println(base);
-				prefixCodes.put(chars.get(j), base);
-				base = incrementBinaryString(base, prefixCodes.values());
-			}
-		}
-		return prefixCodes;
-	}
-	
-	public static String incrementBinaryString(String base, Collection<String> collection) {
-		
-		String binaryString = Integer.toBinaryString(Integer.parseInt(base, 2) + 1);
-		if(base.length() - binaryString.length() > 0) {
-			return String.format("%0" + (base.length() - binaryString.length()) + "d", 0) + binaryString;
-		}
-		else if(base.length() - binaryString.length() < 0){
-			return binaryString.substring(0, binaryString.length()-1);
-		}
-		return binaryString;
-	}
 
 	public static void generateOutputFile(File file, String target, Map<Character, String> prefixCodes, Map<Integer, List<Character>> charLengths) 
 			throws FileNotFoundException, IOException {
@@ -197,7 +161,6 @@ public class Encode {
 			for(Entry<Character, String> entry : prefixCodes.entrySet()) {
 				Character c = entry.getKey();
 				int length = findCharLength(c, charLengths);
-				System.out.println(c + " " + length);
 				output.write(c.toString().getBytes());
 				output.write(length);
 			}
@@ -233,8 +196,9 @@ public class Encode {
 				output.write(Integer.parseInt(binaryString, 2));
 				binaryString = "";
 			} else if (binaryString.length() > 8) {
-				String toWrite = binaryString.substring(0, 7);
-				System.out.println("WRITING " + toWrite);
+				System.out.println(binaryString);
+				String toWrite = binaryString.substring(0, 8);
+				System.out.println("WRITINGGG " + toWrite);
 				output.write(Integer.parseInt(toWrite, 2));
 				binaryString = binaryString.substring(8, binaryString.length()-1);
 			}

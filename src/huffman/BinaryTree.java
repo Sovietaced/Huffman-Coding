@@ -100,13 +100,23 @@ public class BinaryTree implements Comparable<BinaryTree> {
 			}
 			else {
 				int other = (int) o.value;
-				return thisCode.compareTo(other);
+				int comp = thisCode.compareTo(other);
+				if (comp == 0){
+					return -1;
+				} else {
+					return comp;
+				}
 			}
 		} else {
 			int thisFrequency = (int) this.value;
 			if(o.value instanceof HuffmanCode) {
 				HuffmanCode otherCode = (HuffmanCode) o.value;
-				return Integer.compare(thisFrequency, otherCode.getFrequency());
+				int comp = Integer.compare(thisFrequency, otherCode.getFrequency());
+				if(comp == 0){
+					return 1;
+				} else{
+					return comp;
+				}
 			} else {
 				int other = (int) o.value;
 				return Integer.compare(thisFrequency, other);
