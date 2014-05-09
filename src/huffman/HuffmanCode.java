@@ -4,16 +4,20 @@ import java.util.Comparator;
 
 public class HuffmanCode implements Comparable<HuffmanCode> {
 	
-	private char c;
+	private Character c;
 	private int frequency;
 	
 	public HuffmanCode(char c, int frequency) {
-		this.c = c;
+		this.c = new Character(c);
 		this.frequency = frequency;
 	}
 	
 	public int getFrequency() {
 		return this.frequency;
+	}
+	
+	public char getCharacter() {
+		return this.c;
 	}
 	
 	public String toString() {

@@ -82,12 +82,10 @@ public class BinaryTree implements Comparable<BinaryTree> {
 	 */
 	public void dump() {
 		if(this.left != null) {
-			System.out.println("0");
 			this.left.dump();
 		}
 		System.out.println(this.value);
 		if(this.right != null) {
-			System.out.println(1);
 			this.right.dump();
 		}
 	}
