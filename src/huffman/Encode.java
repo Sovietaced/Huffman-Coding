@@ -12,12 +12,12 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.PriorityQueue;
 
 /**
@@ -31,6 +31,7 @@ public class Encode {
 	public static final char EOF = (char) 0;
 	
 	public static void main(String args[]) throws Exception {
+		long start = System.nanoTime();
 		String source = args[0];
 		File file = new File(source);
 		try {
@@ -55,13 +56,15 @@ public class Encode {
 			// Generate Huffman Tree
 			BinaryTree huffmanTree = generateHuffmanTree(pq);
 			
+			// Generate canonized values
 			Map<Integer, List<Character>> charLengths = getCharLengths(huffmanTree, codes);
 			Map<Character, String> prefixCodes = Util.canonize(charLengths);
-			System.out.println(prefixCodes.entrySet());
 				
 			String target = args[1];
+			generateOutputFile(file, target, prefixCodes);
 			
-			generateOutputFile(file, target, prefixCodes, charLengths);
+			long diff = System.nanoTime() - start;
+			System.out.println("Finished in " + TimeUnit.NANOSECONDS.toMillis(diff) + " ms.");
 
 		} catch (IOException e) {
 			throw new Exception(e.getMessage());
@@ -71,8 +74,7 @@ public class Encode {
 	/**
 	 * Calculates a mapping of character -> frequency given an input file
 	 * 
-	 * @param file
-	 *            the input file to read
+	 * @param file the input file to read
 	 * @return a mapping of character -> frquency
 	 * @throws IOException
 	 */
@@ -101,7 +103,12 @@ public class Encode {
 		frequencies.put(EOF, new Integer(1));
 		return frequencies;
 	}
-
+	
+	/**
+	 * Generates the huffman tree
+	 * @param pq a min priority queue of all the codes
+	 * @return a huffman tree
+	 */
 	public static BinaryTree generateHuffmanTree(PriorityQueue<BinaryTree> pq) {
 		while (pq.size() > 1) {
 
@@ -115,6 +122,12 @@ public class Encode {
 		return pq.poll();
 	}
 	
+	/**
+	 * Generates a mapping of character to code lengths based on a huffman tree
+	 * @param huffmanTree the tree to traverse to find encoding
+	 * @param codes the huffman codes to search for
+	 * @return
+	 */
 	public static Map<Integer, List<Character>> getCharLengths(BinaryTree huffmanTree, List<HuffmanCode> codes) {
 		Map<Integer, List<Character>> lengthToCharacters = new HashMap<Integer, List<Character>>();
 		
@@ -140,7 +153,16 @@ public class Encode {
 		return lengthToCharacters;
 	}
 
-	public static void generateOutputFile(File file, String target, Map<Character, String> prefixCodes, Map<Integer, List<Character>> charLengths) 
+	/**
+	 * Generates a huffman encoded file. 
+	 * @param file The input file to encode
+	 * @param target The output file
+	 * @param prefixCodes The encoded values
+	 * @param charLengths the lengths of the encoded values
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	public static void generateOutputFile(File file, String target, Map<Character, String> prefixCodes) 
 			throws FileNotFoundException, IOException {
 		File outputFile = new File(target);
 		outputFile.createNewFile();
@@ -156,55 +178,31 @@ public class Encode {
 			// Write header
 			int numCharacters = prefixCodes.size();
 			output.write(numCharacters);
-			System.out.println(numCharacters);
 			
+			// Write frequencies
 			for(Entry<Character, String> entry : prefixCodes.entrySet()) {
 				Character c = entry.getKey();
-				int length = findCharLength(c, charLengths);
+				int length = entry.getValue().length();
 				output.write(c.toString().getBytes());
 				output.write(length);
 			}
 			
+			// Read file and write output
 			int r;
 			String binaryString = "";
 			// -1 means EOF
 			while ((r = reader.read()) != -1) {
 				Character c = Character.valueOf((char) r);
 				binaryString = binaryString + prefixCodes.get(c);
-				System.out.println("just got " + c);
-				System.out.println("binary string state: " + binaryString);
-				if(binaryString.length() == 8) {
-					System.out.println(Integer.parseInt(binaryString, 2));
-					System.out.println("WRITING SWAG " + binaryString.getBytes().length);
-					output.write(Integer.parseInt(binaryString, 2));
-					binaryString = "";
-				} else if (binaryString.length() > 8) {
-					String toWrite = binaryString.substring(0, 8);
-					System.out.println(Integer.parseInt(binaryString, 2));
-					System.out.println("WRITING " + toWrite);
-					output.write(Integer.parseInt(toWrite, 2));
-					binaryString = binaryString.replace(toWrite, "");
-				}		
+				binaryString = write(binaryString, output);
 			}
-			System.out.println("EOFING");
-			// Append EOF to end
+			
+			// Finished writing file input. Append EOF to end
 			binaryString = binaryString + prefixCodes.get(new Character(EOF));
+			binaryString = write(binaryString, output);
 			
-			if(binaryString.length() == 8) {
-				System.out.println("WRITING AFTER EOF " + Integer.parseInt(binaryString, 2));
-				System.out.println("WRITING AFTER EOF " + binaryString);
-				output.write(Integer.parseInt(binaryString, 2));
-				binaryString = "";
-			} else if (binaryString.length() > 8) {
-				System.out.println(binaryString);
-				String toWrite = binaryString.substring(0, 8);
-				System.out.println("WRITINGGG " + toWrite);
-				output.write(Integer.parseInt(toWrite, 2));
-				binaryString = binaryString.substring(8, binaryString.length()-1);
-			}
-			
+			// Handle overflow
 			if(binaryString.length() > 0) {
-				System.out.println("WRITING WHATS LEFT " + Integer.parseInt(binaryString, 2));
 				output.write(Integer.parseInt(binaryString, 2));
 			}
 			
@@ -212,15 +210,24 @@ public class Encode {
 			output.close();
 		}
 	}
-
-	private static int findCharLength(Character c,
-			Map<Integer, List<Character>> charLengths) {
-		for(Entry<Integer, List<Character>> entry : charLengths.entrySet()) {
-			if(entry.getValue().contains(c)) {
-				return entry.getKey();
-			}
+	
+	/**
+	 * Helper that deals with writing binary strings.
+	 * @param binaryString the binary string to write
+	 * @param output the file to write to
+	 * @return the resulting binaryString that hasn't been written
+	 * @throws NumberFormatException
+	 * @throws IOException
+	 */
+	private static String write(String binaryString, BufferedOutputStream output) throws NumberFormatException, IOException {
+		if(binaryString.length() == 8) {
+			output.write(Integer.parseInt(binaryString, 2));
+			binaryString = "";
+		} else if (binaryString.length() > 8) {
+			String toWrite = binaryString.substring(0, 8);
+			output.write(Integer.parseInt(toWrite, 2));
+			binaryString = binaryString.replace(toWrite, "");
 		}
-		System.out.println("broken");
-		return -1;	
+		return binaryString;
 	}
 }

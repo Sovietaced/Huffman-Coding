@@ -1,7 +1,11 @@
 package huffman;
 
-import java.util.Comparator;
-
+/**
+ * HuffmanCode wrapper, simply stores a character and frequency
+ *
+ * @author Jason Parraga <Sovietaced@gmail.com>
+ *
+ */
 public class HuffmanCode implements Comparable<HuffmanCode> {
 	
 	private Character c;

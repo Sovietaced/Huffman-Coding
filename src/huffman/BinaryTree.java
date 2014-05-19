@@ -1,5 +1,11 @@
 package huffman;
 
+/**
+ * A binary tree that can hold a value, or a huffman code as its value
+ * 
+ * @author Jason Parraga <sovietaced@gmail.com>
+ *
+ */
 public class BinaryTree implements Comparable<BinaryTree> {
 	
 	private BinaryTree left;
@@ -51,6 +57,12 @@ public class BinaryTree implements Comparable<BinaryTree> {
 		this.value = value;
 	}
 	
+	/**
+	 * Gets the encoding by traversing the tree and finding the ndoe
+	 * @param passed the passed string, which included the traversed directions
+	 * @param hc the huffman cod eto find
+	 * @return
+	 */
 	public String getEncoding(String passed, HuffmanCode hc) {
 		if(this.value instanceof HuffmanCode) {
 			HuffmanCode thishc = (HuffmanCode) this.value;
